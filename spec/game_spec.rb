@@ -19,6 +19,13 @@ describe 'BowlingGame' do
     end
   end
 
+  context 'frame proxy' do
+    it 'has a frame proxy' do
+      game = BowlingGame.new(['4', '3'], ['2', '1'], ['2', '3'], ['7', '1'], ['3', '6'], ['2', '2'], ['8', '1'], ['6', '3'], ['2', '3'], ['1', '1'])
+      expect(game.frame_proxy).not_to be_nil
+    end
+  end
+
   it 'handles simple scores' do
     expect(
       BowlingGame.new(
