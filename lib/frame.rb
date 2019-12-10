@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# NOTE: the score for a 'bowl/shot' does not mean it is the score for *this* frame, only for what was bowled for that shot.
 class Frame
   attr_accessor :first_bowl, :second_bowl, :number, :is_spare, :is_strike, :next_frame, :last_frame_bowl, :last_frame_bowl_is_strike, :last_frame_bowl_is_spare
 
