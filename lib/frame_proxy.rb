@@ -3,16 +3,22 @@
 require 'set'
 
 class FrameProxy
-  attr_accessor :all_frames, :current, :number_of_frames
+  attr_accessor :all_frames, :current
 
   def initialize(my_frames = Set.new())
     @all_frames = my_frames
-    @number_of_frames = @all_frames.length
+
+    # By default we set the number of frames, so add needs to keep it in check
   end
 
   # Return all the frames, sorted by the frame number
   def all
     @all_frames.sort_by { |frame| frame.number }
+  end
+
+  # Add a frame to the set
+  def add(frame)
+    @all_frames.add(frame)
   end
 
   # Set the current frame
@@ -23,14 +29,14 @@ class FrameProxy
   # Find the next frame(s)
   def next
     return nil unless @current
-    return nil if @current.number > @number_of_frames
+    return nil if @current.number > size
 
     # you're not the last frame
     @all_frames.find { |frame| frame.number == (@current.number + 1) }
   end
 
   def size
-    @number_of_frames
+    @all_frames.length
   end
 
   def last_frame?
