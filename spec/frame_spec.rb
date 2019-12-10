@@ -15,6 +15,10 @@ describe 'Frame' do
     it 'requires the second bowl' do
       expect { Frame.new(1, '1', nil) }.to raise_error(ArgumentError, 'Second Bowl is required!')
     end
+
+    it 'defaults current_game to nil' do
+      expect(Frame.new(1, '1', '5').current_game).to be_nil
+    end
   end
 
   context 'setting scores for both shots' do
@@ -77,10 +81,10 @@ describe 'Frame' do
 
     # Spare ( [N, /] ): 10 points + value of next shot
     it 'when the first shot hits and the second shot is a spare' do
-      frame_1 = Frame.new(1, '9', '/') # 12 for the FRAME
-      frame_2 = Frame.new(2, '2', '-') # + 2 = 14 for the whole game?
-
-      frame_1.set_next_frame(frame_2)
+      game = BowlingGame.new(['9', '/'], ['2', '-'])
+      # 12 for the FRAME
+      # + 2 = 14 for the whole game?
+      frame_1, frame_2 = game.frame_proxy.all.to_a
 
       expect(frame_1.number).to eql(1)
       expect(frame_2.number).to eql(2)
@@ -92,12 +96,13 @@ describe 'Frame' do
     it 'handles the case from Magnus' do
       # 7 (4,3) + (10 (9 and spare) + 2 (whcih was from the next (third) frame) + 2 (the value of the first shot in the third frame
       # ['4', '3'], ['9', '/'], ['2', '-']
-      frame_1 = Frame.new(1, '4', '3')
-      frame_2 = Frame.new(2, '9', '/')
-      frame_3 = Frame.new(3, '2', '-')
+      game = BowlingGame.new(['4', '3'], ['9', '/'], ['2', '-'])
 
-      frame_1.set_next_frame(frame_2)
-      frame_2.set_next_frame(frame_3)
+      frames = game.frame_proxy.all.to_a
+
+      frame_1 = frames.shift
+      frame_2 = frames.shift
+      frame_3 = frames.shift
 
       expect(frame_1.number).to eql(1)
       expect(frame_2.number).to eql(2)

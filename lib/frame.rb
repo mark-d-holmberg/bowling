@@ -2,7 +2,7 @@
 
 # NOTE: the score for a 'bowl/shot' does not mean it is the score for *this* frame, only for what was bowled for that shot.
 class Frame
-  attr_accessor :first_bowl, :second_bowl, :number, :is_spare, :is_strike, :next_frame, :last_frame_bowl, :last_frame_bowl_is_strike, :last_frame_bowl_is_spare
+  attr_accessor :first_bowl, :second_bowl, :number, :is_spare, :is_strike, :last_frame_bowl, :last_frame_bowl_is_strike, :last_frame_bowl_is_spare, :current_game
 
   def initialize(number = nil, first_bowl = nil, second_bowl = nil, last_frame_bowl = nil)
     raise ArgumentError, 'Frame Number is required!' if number.nil?
@@ -62,15 +62,25 @@ class Frame
 
     # Default next_frame to nil
     @next_frame = nil
+
+    # Default current_game to nil
+    @current_game = nil
   end
 
-  # Indicate what our next frame is. Probably only need to pass in the first bowl score
-  def set_next_frame(frame)
-    @next_frame = frame #if frame.is_a?(Frame)
+  # Fetch our next frame from the proxy
+  def next_frame
+    @current_game.frame_proxy.current!(self)
+    @current_game.frame_proxy.next
+  end
+
+  # Needs to know about the game
+  def set_current_game!(game)
+    @current_game = game
   end
 
   def is_last_frame?
-    !last_frame_bowl.nil?
+    @current_game.frame_proxy.current!(self)
+    @current_game.frame_proxy.last_frame?
   end
 
   # No strike and no spare
@@ -80,14 +90,14 @@ class Frame
 
   # Double is two strikes
   def double?
-    return false unless @next_frame
-    @is_strike && @next_frame.is_strike
+    return false unless next_frame
+    @is_strike && next_frame.is_strike
   end
 
   # This one is a strike and my next frame is a double
   def triple?
-    return false unless @next_frame && @next_frame.next_frame
-    @is_strike && @next_frame.double?
+    return false unless next_frame && next_frame.next_frame
+    @is_strike && next_frame.double?
   end
 
   # Are you a strike
@@ -99,10 +109,6 @@ class Frame
   def is_spare?
     @is_spare
   end
-
-  # def inspect
-  #   "#<Frame:#{"0x00%x" % (object_id << 1)}, @first_bowl=#{@first_bowl}, @second_bowl=#{@second_bowl}, @number=#{@number}, @is_spare=#{@is_spare}, @is_strike=#{@is_strike}, @has_next_frame?=#{@next_frame ? true : false}, @score=#{score}>"
-  # end
 
   # We can't know the score for a FRAME when it's a spare if there is no next_frame!
   # The TOTAL score for THIS frame (could depend on the next 2/3 frames)
@@ -124,33 +130,33 @@ class Frame
     end
 
     # This frame is a strike and the next frame is a strike
-    if double? && @next_frame&.next_frame
+    if double? && next_frame&.next_frame
       # TODO: check to make sure there is a next_frame.next_frame
-      return 10 + (10 + @next_frame.next_frame.first_bowl)
+      return 10 + (10 + next_frame.next_frame.first_bowl)
     end
 
 
-    if @next_frame
+    if next_frame
       # This frame is a strike
       if is_strike?
         # This frame is a strike, but the next one is a single (not spare or strike)
-        if @next_frame.single?
-          return 10 + @next_frame.score
+        if next_frame.single?
+          return 10 + next_frame.score
         end
 
         # The current frame is a strike, but the next frame is a spare
-        if @next_frame.is_spare?
+        if next_frame.is_spare?
           return 20
         end
 
-        if @next_frame.is_last_frame? && @next_frame.is_strike?
+        if next_frame.is_last_frame? && next_frame.is_strike?
           return 30
         end
       end
 
       # This frame is a spare
       if is_spare?
-        return [10, @next_frame.first_bowl].compact.sum
+        return [10, next_frame.first_bowl].compact.sum
       end
     else
       # Last frame of the game

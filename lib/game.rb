@@ -22,18 +22,12 @@ class BowlingGame
     # Can we just add a simple FrameProxy, without touching anything else?
     @frame_proxy = FrameProxy.new
 
-    # Populate the Proxy
+    # Populate the Proxy. Now we only have to iterate once.
     args.map.with_index.map do |argument, index|
       first_bowl, second_bowl, last_frame_bowl = argument
-      @frame_proxy.add(Frame.new((index+1), first_bowl, second_bowl, last_frame_bowl))
-    end
-
-    # Set the frames. # TODO: make this use frame proxy
-    @frame_proxy.all.each do |frame|
-      next_frame_index = frame.number + 1 # we've 1-based this one
-      if next_frame = @frame_proxy.all.find { |k| k.number == next_frame_index }
-        frame.set_next_frame(next_frame)
-      end
+      frame = Frame.new((index+1), first_bowl, second_bowl, last_frame_bowl)
+      frame.set_current_game!(self)
+      @frame_proxy.add(frame)
     end
   end
 
