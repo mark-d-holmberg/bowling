@@ -2,7 +2,7 @@
 
 # NOTE: the score for a 'bowl/shot' does not mean it is the score for *this* frame, only for what was bowled for that shot.
 class Frame
-  attr_accessor :first_bowl, :second_bowl, :number, :is_spare, :is_strike, :last_frame_bowl, :last_frame_bowl_is_strike, :last_frame_bowl_is_spare, :current_game
+  attr_accessor :first_bowl, :second_bowl, :number, :is_spare, :is_strike, :last_frame_bowl, :current_game, :last_frame_bowl_variant
 
   def initialize(number = nil, first_bowl = nil, second_bowl = nil, last_frame_bowl = nil)
     raise ArgumentError, 'Frame Number is required!' if number.nil?
@@ -14,10 +14,10 @@ class Frame
     # Set this score if applicable
     @last_frame_bowl = case last_frame_bowl.to_s
     when 'X'
-      @last_frame_bowl_is_strike = true
+      @last_frame_bowl_variant = :strike
       10
     when '/'
-      @last_frame_bowl_is_spare = true
+      @last_frame_bowl_variant = :spare
       0
     when '-', ''
       0
@@ -125,33 +125,23 @@ class Frame
 
 
     # This frame is a single, no spares or strikes. Could have missed outright
-    if single?
-      return [first_bowl, second_bowl].compact.sum
-    end
+    return [first_bowl, second_bowl].compact.sum if single?
 
     # This frame is a strike and the next frame is a strike
-    if double? && next_frame&.next_frame
-      # TODO: check to make sure there is a next_frame.next_frame
-      return 10 + (10 + next_frame.next_frame.first_bowl)
-    end
+    return (10 + (10 + next_frame.next_frame.first_bowl)) if double? && next_frame&.next_frame
 
-
+    # We have a next frame
     if next_frame
       # This frame is a strike
       if is_strike?
         # This frame is a strike, but the next one is a single (not spare or strike)
-        if next_frame.single?
-          return 10 + next_frame.score
-        end
+        return 10 + next_frame.score if next_frame.single?
 
         # The current frame is a strike, but the next frame is a spare
-        if next_frame.is_spare?
-          return 20
-        end
+        return 20 if next_frame.is_spare?
 
-        if next_frame.is_last_frame? && next_frame.is_strike?
-          return 30
-        end
+        # Strike and the final frame is a strike too
+        return 30 if next_frame.is_last_frame? && next_frame.is_strike?
       end
 
       # This frame is a spare
@@ -162,22 +152,20 @@ class Frame
       # Last frame of the game
       if is_last_frame?
         # We got a spare for our first throw
-        if is_spare?
-          return 10 + last_frame_bowl
-        end
+        return (10 + last_frame_bowl) if is_spare?
 
         # We got a Strike for our first throw
         if is_strike?
           # Check what the last_frame_bowl is
-          if @last_frame_bowl_is_spare
-            return 20
-          end
-
-          if @last_frame_bowl_is_strike
+          case @last_frame_bowl_variant
+          when :strike
             return 30
+          when :spare
+            return 20
+          else
+            # Either a number or a miss
+            return 10 + second_bowl + last_frame_bowl
           end
-
-          return 10 + second_bowl + last_frame_bowl
         end
       else
         # We're not on the last frame
@@ -187,5 +175,5 @@ class Frame
         return 10 if is_strike?
       end
     end
-  end
-end
+  end # end score method
+end # end class definition
