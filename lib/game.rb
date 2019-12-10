@@ -40,10 +40,10 @@ class BowlingGame
   # Reject stupidity
   def validate_args!(arguments)
     # check for empty array
-    raise ArgumentError, 'stupid array' if arguments.any? { |arg| arg.is_a?(Array) && arg.empty? }
+    raise ArgumentError, 'Frame data is required for all elements!' if arguments.any? { |arg| arg.is_a?(Array) && arg.empty? }
 
     # check for nils
-    raise ArgumentError, 'stupid nil' if arguments.any? { |arg| arg.nil? }
+    raise ArgumentError, 'No arguments can be nil!' if arguments.any? { |arg| arg.nil? }
 
     # check for just empty
     raise ArgumentError, 'Frames are required!' if arguments.empty? and arguments.is_a?(Array)

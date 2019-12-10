@@ -9,15 +9,15 @@ describe 'BowlingGame' do
     end
 
     it 'raises cant be nil if nil is passed in' do
-      expect { BowlingGame.new(nil) }.to raise_error(ArgumentError, 'stupid nil')
+      expect { BowlingGame.new(nil) }.to raise_error(ArgumentError, 'No arguments can be nil!')
     end
 
     it 'raise cant be empty array if an empty array is passed in' do
-      expect { BowlingGame.new([]) }.to raise_error(ArgumentError, 'stupid array')
+      expect { BowlingGame.new([]) }.to raise_error(ArgumentError, 'Frame data is required for all elements!')
     end
 
     it 'handles mixed state' do
-      expect { BowlingGame.new(%w[1 2], [], nil) }.to raise_error(ArgumentError, 'stupid array')
+      expect { BowlingGame.new(%w[1 2], [], nil) }.to raise_error(ArgumentError, 'Frame data is required for all elements!')
     end
   end
 
